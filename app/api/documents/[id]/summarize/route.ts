@@ -1,8 +1,8 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { askGemini } from "@/lib/gemini";
-import { geminiErrorStatus } from "@/lib/gemini-errors";
+import { askGroq } from "@/lib/groq";
+import { groqErrorStatus } from "@/lib/groq-errors";
 import { SUMMARY_SYSTEM_PROMPT } from "@/lib/summary-prompts";
 import { createClient } from "@/utils/supabase/server";
 
@@ -43,7 +43,7 @@ export async function POST(_request: Request, context: RouteContext) {
   }
 
   try {
-    const summaryContent = await askGemini(
+    const summaryContent = await askGroq(
       SUMMARY_SYSTEM_PROMPT,
       `Extracted document text:\n\n${extractedText}`
     );
@@ -74,7 +74,6 @@ export async function POST(_request: Request, context: RouteContext) {
         .from("summaries")
         .insert({
           document_id: documentId,
-          user_id: user.id,
           content: summaryContent,
         })
         .select("id, content")
@@ -97,7 +96,7 @@ export async function POST(_request: Request, context: RouteContext) {
 
     return NextResponse.json(
       { error: message },
-      { status: geminiErrorStatus(message) },
+      { status: groqErrorStatus(message) },
     );
   }
 }

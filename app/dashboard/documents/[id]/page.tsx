@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import { Suspense } from "react";
 
 import { DocumentFlashcardsSection } from "@/components/document-flashcards-section";
 import { DocumentProcessingBanner } from "@/components/document-processing-banner";
@@ -85,7 +86,7 @@ export default async function DocumentPage({ params }: DocumentPageProps) {
     .from("flashcards")
     .select("*")
     .eq("document_id", id)
-    .order("sort_order", { ascending: true });
+    .order("created_at", { ascending: true });
 
   if (flashcardsError) {
     console.error("Failed to load flashcards:", flashcardsError.message);
@@ -131,17 +132,21 @@ export default async function DocumentPage({ params }: DocumentPageProps) {
         </div>
 
         <div className="glass-panel p-6 sm:p-8">
-          <DocumentQuizSection
-            document={documentRow}
-            initialQuiz={(quiz as Quiz | null) ?? null}
-          />
+          <Suspense fallback={null}>
+            <DocumentQuizSection
+              document={documentRow}
+              initialQuiz={(quiz as Quiz | null) ?? null}
+            />
+          </Suspense>
         </div>
 
         <div className="glass-panel p-6 sm:p-8">
-          <DocumentFlashcardsSection
-            document={documentRow}
-            initialCards={(flashcards ?? []) as Flashcard[]}
-          />
+          <Suspense fallback={null}>
+            <DocumentFlashcardsSection
+              document={documentRow}
+              initialCards={(flashcards ?? []) as Flashcard[]}
+            />
+          </Suspense>
         </div>
 
         <div className="glass-panel p-6 sm:p-8">

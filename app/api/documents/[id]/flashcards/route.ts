@@ -2,8 +2,8 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { buildFlashcardsSystemPrompt } from "@/lib/flashcard-prompts";
-import { askGemini } from "@/lib/gemini";
-import { geminiErrorStatus } from "@/lib/gemini-errors";
+import { askGroq } from "@/lib/groq";
+import { groqErrorStatus } from "@/lib/groq-errors";
 import { parseFlashcardPairs } from "@/lib/parse-flashcards-json";
 import type { Flashcard, FlashcardPair } from "@/types";
 import { createClient } from "@/utils/supabase/server";
@@ -45,7 +45,7 @@ export async function POST(_request: Request, context: RouteContext) {
   }
 
   try {
-    const rawFlashcards = await askGemini(
+    const rawFlashcards = await askGroq(
       buildFlashcardsSystemPrompt(extractedText),
       "Generate the flashcard JSON array now."
     );
@@ -70,12 +70,10 @@ export async function POST(_request: Request, context: RouteContext) {
       throw new Error(deleteError.message);
     }
 
-    const rows = pairs.map((pair, index) => ({
+    const rows = pairs.map((pair) => ({
       document_id: documentId,
-      user_id: user.id,
       front: pair.front,
       back: pair.back,
-      sort_order: index,
     }));
 
     const { data: inserted, error: insertError } = await supabase
@@ -88,7 +86,8 @@ export async function POST(_request: Request, context: RouteContext) {
     }
 
     const cards = [...inserted].sort(
-      (a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0)
+      (a, b) =>
+        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
     );
 
     return NextResponse.json({
@@ -100,7 +99,7 @@ export async function POST(_request: Request, context: RouteContext) {
 
     return NextResponse.json(
       { error: message },
-      { status: geminiErrorStatus(message) },
+      { status: groqErrorStatus(message) },
     );
   }
 }

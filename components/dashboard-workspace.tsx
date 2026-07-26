@@ -41,6 +41,13 @@ export function DashboardWorkspace({
   const selectedSubject = subjects.find((s) => s.id === selectedId) ?? null;
   const selectedIndex = subjects.findIndex((s) => s.id === selectedId);
 
+  const docStats = useMemo(() => {
+    const ready = documents.filter(
+      (d) => String(d.status).toLowerCase() === "ready"
+    ).length;
+    return { total: documents.length, ready };
+  }, [documents]);
+
   const loadDocuments = useCallback(async (subjectId: string) => {
     setLoadingDocs(true);
     const supabase = createClient();
@@ -79,83 +86,119 @@ export function DashboardWorkspace({
   }
 
   return (
-    <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-6">
-      <aside className="glass-panel w-full shrink-0 p-4 lg:w-60 xl:w-72">
-        <div className="mb-4 flex items-center justify-between gap-2">
-          <div>
-            <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-              Library
-            </p>
-            <h2 className="font-display text-lg">Subjects</h2>
-          </div>
-          <AddSubjectDialog />
+    <div className="space-y-6">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+            Today&apos;s desk
+          </p>
+          <h1 className="font-display text-xl sm:text-2xl">Your study workspace</h1>
         </div>
+        <div className="flex flex-wrap gap-2">
+          <span className="stat-chip">
+            <span className="text-foreground">{subjects.length}</span> subjects
+          </span>
+          {selectedSubject ? (
+            <>
+              <span className="stat-chip">
+                <span className="text-foreground">{docStats.total}</span> PDFs
+              </span>
+              <span className="stat-chip">
+                <span className="text-foreground">{docStats.ready}</span> ready
+              </span>
+            </>
+          ) : null}
+        </div>
+      </div>
 
-        {subjects.length === 0 ? (
-          <EmptyState
-            icon={BookOpen}
-            title="No subjects yet"
-            description="Add a folder tab to start your first study universe."
-            action={<AddSubjectDialog />}
-            className="min-h-36 bg-transparent"
-          />
-        ) : (
-          <nav className="flex flex-col gap-2" aria-label="Subject folders">
-            {subjects.map((subject, index) => (
-              <SubjectFolderTab
-                key={subject.id}
-                subject={subject}
-                index={index}
-                active={subject.id === selectedId}
-                onSelect={() => selectSubject(subject.id)}
-                onMutate={handleMutate}
-              />
-            ))}
-          </nav>
-        )}
-      </aside>
-
-      <section className="glass-panel min-w-0 flex-1 p-6 sm:p-8">
-        {!selectedSubject ? (
-          <EmptyState
-            title="Open a subject folder"
-            description="Pick a tab on the left — your PDFs, summaries, and practice tools live in one workspace."
-            className="min-h-64 bg-transparent"
-          />
-        ) : loadingDocs ? (
-          <div className="flex min-h-64 items-center justify-center text-muted-foreground">
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Loading workspace…
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-5">
+        <aside className="library-rail w-full shrink-0 p-4 lg:w-64 xl:w-72">
+          <div className="mb-5 flex items-center justify-between gap-2">
+            <div>
+              <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+                Folder rail
+              </p>
+              <h2 className="font-display text-lg">Subjects</h2>
+            </div>
+            <AddSubjectDialog />
           </div>
-        ) : (
-          <div className="space-y-8">
-            <header className="space-y-4 border-b border-border/60 pb-8">
-              <StudyLoopSteps compact />
-              <div className="space-y-2">
-                <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
-                  {selectedIndex >= 0
-                    ? String(selectedIndex + 1).padStart(2, "0")
-                    : "—"}
-                </p>
-                <h1 className="font-display text-2xl sm:text-3xl">
-                  {selectedSubject.name}
-                </h1>
-                <p className="page-lead max-w-xl">
-                  Your study universe for this topic — upload PDFs, then move
-                  through summary, Q&amp;A, quiz, and flashcards without leaving
-                  the loop.
-                </p>
-              </div>
-            </header>
-            <SubjectDocumentsPanel
-              subject={selectedSubject}
-              userId={userId}
-              documents={documents}
-              onDocumentsChange={() => void loadDocuments(selectedSubject.id)}
+
+          {subjects.length === 0 ? (
+            <EmptyState
+              icon={BookOpen}
+              title="No subjects yet"
+              description="Name your first folder tab — one course, one drawer for PDFs and study tools."
+              action={<AddSubjectDialog />}
+              className="min-h-36 border-border/60 bg-muted/30 shadow-none"
             />
-          </div>
-        )}
-      </section>
+          ) : (
+            <nav className="flex flex-col gap-2.5" aria-label="Subject folders">
+              {subjects.map((subject, index) => (
+                <SubjectFolderTab
+                  key={subject.id}
+                  subject={subject}
+                  index={index}
+                  active={subject.id === selectedId}
+                  onSelect={() => selectSubject(subject.id)}
+                  onMutate={handleMutate}
+                />
+              ))}
+            </nav>
+          )}
+        </aside>
+
+        <section className="workspace-panel min-w-0 flex-1 p-6 sm:p-8 lg:p-10">
+          {!selectedSubject ? (
+            <EmptyState
+              title="Pick a folder"
+              description="Select a subject tab on the left. Each folder holds the PDFs and study loop for that topic."
+              className="min-h-64 border-border/60 bg-muted/30 shadow-none"
+            />
+          ) : loadingDocs ? (
+            <div className="flex min-h-64 flex-col items-center justify-center gap-3 text-muted-foreground">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <p className="font-mono text-xs uppercase tracking-widest">
+                Opening folder…
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-10">
+              <header className="space-y-5 border-b border-border/60 pb-8">
+                <StudyLoopSteps compact />
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-center gap-3">
+                    <p className="font-mono text-xs uppercase tracking-widest text-muted-foreground">
+                      Folder{" "}
+                      {selectedIndex >= 0
+                        ? String(selectedIndex + 1).padStart(2, "0")
+                        : "—"}
+                    </p>
+                    <span
+                      className="subject-accent-bar"
+                      style={{ backgroundColor: selectedSubject.color }}
+                      aria-hidden
+                    />
+                  </div>
+                  <h2 className="font-display text-2xl sm:text-3xl">
+                    {selectedSubject.name}
+                  </h2>
+                  <p className="page-lead max-w-xl">
+                    <span className="display-emphasis">Drop a PDF</span>, then
+                    run the loop — summary, grounded Q&amp;A, quiz, and
+                    flashcards without leaving this folder.
+                  </p>
+                </div>
+              </header>
+              <SubjectDocumentsPanel
+                subject={selectedSubject}
+                userId={userId}
+                documents={documents}
+                onDocumentsChange={() => void loadDocuments(selectedSubject.id)}
+              />
+            </div>
+          )}
+        </section>
+      </div>
     </div>
   );
 }

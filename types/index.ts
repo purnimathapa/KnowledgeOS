@@ -28,18 +28,18 @@ export type Document = {
 export type Summary = {
   id: string;
   document_id: string;
-  user_id: string;
   content: string;
   created_at: string;
+  user_id?: string;
 };
 
 export type QaExchange = {
   id: string;
   document_id: string;
-  user_id: string;
   question: string;
   answer: string;
   created_at: string;
+  user_id?: string;
 };
 
 export type QuizQuestion = {
@@ -52,9 +52,9 @@ export type QuizQuestion = {
 export type Quiz = {
   id: string;
   document_id: string;
-  user_id: string;
   questions: QuizQuestion[];
   created_at: string;
+  user_id?: string;
 };
 
 export type FlashcardPair = {
@@ -65,9 +65,9 @@ export type FlashcardPair = {
 export type Flashcard = FlashcardPair & {
   id: string;
   document_id: string;
-  user_id: string;
-  sort_order?: number;
   created_at: string;
+  user_id?: string;
+  sort_order?: number;
 };
 
 export const DOCUMENTS_BUCKET = "documents";

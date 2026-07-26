@@ -62,6 +62,25 @@ const config: Config = {
         md: "var(--radius)",
         sm: "var(--radius)",
       },
+      keyframes: {
+        "content-reveal": {
+          from: {
+            opacity: "0",
+            transform: "perspective(720px) rotateY(-14deg)",
+          },
+          to: {
+            opacity: "1",
+            transform: "perspective(720px) rotateY(0deg)",
+          },
+        },
+        "stroke-draw": {
+          to: { strokeDashoffset: "0" },
+        },
+      },
+      animation: {
+        "content-reveal": "content-reveal 0.42s ease-out both",
+        "stroke-draw": "stroke-draw 0.55s ease-out both",
+      },
     },
   },
   plugins: [require("tailwindcss-animate")],

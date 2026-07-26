@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-import { Button } from "@/components/ui/button";
+import { SiteHeaderActions } from "@/components/marketing/site-header-actions";
 
 type SiteHeaderProps = {
   variant?: "marketing" | "minimal";
@@ -16,22 +16,7 @@ export function SiteHeader({ variant = "marketing" }: SiteHeaderProps) {
         >
           KnowledgeOS
         </Link>
-        <nav className="flex items-center gap-2 sm:gap-3">
-          {variant === "marketing" ? (
-            <>
-              <Button asChild variant="ghost" size="sm">
-                <Link href="/login">Log in</Link>
-              </Button>
-              <Button asChild size="sm">
-                <Link href="/signup">Start for free</Link>
-              </Button>
-            </>
-          ) : (
-            <Button asChild variant="ghost" size="sm">
-              <Link href="/dashboard">Dashboard</Link>
-            </Button>
-          )}
-        </nav>
+        <SiteHeaderActions variant={variant} />
       </div>
     </header>
   );

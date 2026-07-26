@@ -129,10 +129,8 @@ export function PdfUploadZone({ subject, userId, onUploadComplete }: PdfUploadZo
     <div className="space-y-4">
       <div
         className={cn(
-          "relative flex min-h-44 flex-col items-center justify-center gap-4 rounded-[var(--radius)] border border-dashed border-border/70 bg-muted/20 p-8 text-center transition-colors",
-          dragActive
-            ? "border-ring/50 bg-muted/50"
-            : "hover:border-border hover:bg-muted/30"
+          "upload-dropzone",
+          dragActive && "upload-dropzone-active"
         )}
         onDragEnter={(e) => {
           e.preventDefault();
@@ -162,7 +160,7 @@ export function PdfUploadZone({ subject, userId, onUploadComplete }: PdfUploadZo
         <div className="space-y-1">
           <p className="font-medium">Drop a PDF here</p>
           <p className="section-lead">
-            or choose a file from your device (.pdf only)
+            or choose a file — <span className="font-mono text-xs">.pdf</span> only
           </p>
         </div>
         <Button type="button" variant="outline" size="sm" asChild>
@@ -242,9 +240,14 @@ export function SubjectDocumentsPanel({
   }, [documents, refreshDocuments]);
 
   return (
-    <div className="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+    <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)]">
       <section className="space-y-4">
-        <h2 className="section-title">Upload PDF</h2>
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+            Step 01
+          </p>
+          <h2 className="section-title">Upload PDF</h2>
+        </div>
         <PdfUploadZone
           subject={subject}
           userId={userId}
@@ -253,45 +256,54 @@ export function SubjectDocumentsPanel({
       </section>
 
       <section className="space-y-4">
-        <h2 className="section-title">Documents</h2>
+        <div>
+          <p className="font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+            In this folder
+          </p>
+          <h2 className="section-title">Documents</h2>
+        </div>
         {documents.length === 0 ? (
           <EmptyState
             icon={FileText}
-            title="No documents yet"
-            description="Upload a PDF to generate summaries, quizzes, flashcards, and Q&A for this subject."
+            title="This folder's empty"
+            description="Upload a PDF to start building your notes, quizzes, and flashcards for this subject."
           />
         ) : (
-          <ul className="divide-y divide-border/60 overflow-hidden rounded-[var(--radius)] border border-border/60 bg-card/40">
+          <ul className="space-y-3">
             {documents.map((doc) => {
               const isReady = doc.status === "ready";
               return (
-              <li
-                key={doc.id}
-                className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between"
-              >
-                <div className="flex min-w-0 items-start gap-3">
-                  <FileText className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                  <div className="min-w-0">
-                    <p className="truncate font-medium">
-                      {doc.file_name ?? doc.storage_path.split("/").pop()}
-                    </p>
-                    <p className="section-lead">
-                      {isReady
-                        ? "Ready for summaries, quiz, and Q&A"
-                        : "Processing — open to view status"}
-                    </p>
+                <li key={doc.id} className="doc-card">
+                  <div className="flex min-w-0 items-start gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius)] border border-border/60 bg-muted/40">
+                      <FileText className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-foreground">
+                        {doc.file_name ?? doc.storage_path.split("/").pop()}
+                      </p>
+                      <p className="section-lead">
+                        {isReady
+                          ? "Ready — open study tools"
+                          : "Processing — check status inside"}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex w-full shrink-0 items-center gap-2 sm:w-auto sm:justify-end">
-                  <DocumentStatusBadge status={doc.status} />
-                  <Button variant="outline" size="sm" className="w-full sm:w-auto" asChild>
-                    <Link href={`/dashboard/documents/${doc.id}`}>
-                      {isReady ? "Study" : "View"}
-                    </Link>
-                  </Button>
-                </div>
-              </li>
-            );
+                  <div className="flex w-full shrink-0 items-center gap-2 sm:w-auto sm:justify-end">
+                    <DocumentStatusBadge status={doc.status} />
+                    <Button
+                      variant={isReady ? "default" : "outline"}
+                      size="sm"
+                      className="w-full sm:w-auto"
+                      asChild
+                    >
+                      <Link href={`/dashboard/documents/${doc.id}`}>
+                        {isReady ? "Study" : "View"}
+                      </Link>
+                    </Button>
+                  </div>
+                </li>
+              );
             })}
           </ul>
         )}

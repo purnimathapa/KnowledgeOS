@@ -8,8 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ContentReveal } from "@/components/motion/content-reveal";
+import { QuizProgressRuler } from "@/components/quiz-progress-ruler";
+import { formatGroqError } from "@/lib/groq-errors";
+import { useAutostartFromQuery } from "@/lib/use-autostart-from-query";
 import { cn } from "@/lib/utils";
-import { formatGeminiError } from "@/lib/gemini-errors";
 import type { Document, Quiz, QuizQuestion } from "@/types";
 
 type DocumentQuizSectionProps = {
@@ -61,7 +64,7 @@ export function DocumentQuizSection({
       } | null;
 
       if (!response.ok || !body?.questions?.length) {
-        const message = formatGeminiError(body?.error ?? "Failed to generate quiz.");
+        const message = formatGroqError(body?.error ?? "Failed to generate quiz.");
         setError(message);
         toast.error("Quiz generation failed", { description: message });
         setPhase("idle");
@@ -71,7 +74,6 @@ export function DocumentQuizSection({
       setQuiz({
         id: body.id ?? quiz?.id ?? document.id,
         document_id: document.id,
-        user_id: document.user_id,
         questions: body.questions,
         created_at: quiz?.created_at ?? new Date().toISOString(),
       });
@@ -110,6 +112,22 @@ export function DocumentQuizSection({
         entry.selected !== undefined &&
         entry.selected !== entry.question.correct_index
     );
+
+  const quizCompletedCount =
+    phase === "results"
+      ? questions.length
+      : Object.keys(answers).length;
+
+  const showQuizProgress =
+    (phase === "taking" || phase === "results") && questions.length > 0;
+
+  useAutostartFromQuery("quiz", canGenerate, () => {
+    if (quiz?.questions?.length) {
+      handleStartQuiz();
+    } else {
+      void handleGenerateQuiz();
+    }
+  });
 
   return (
     <section className="space-y-4">
@@ -177,10 +195,17 @@ export function DocumentQuizSection({
       ) : null}
 
       {phase === "taking" && currentQuestion ? (
-        <div className="space-y-6 rounded-lg bg-muted/40 p-6">
-          <p className="section-lead">
-            Question {currentIndex + 1} of {questions.length}
-          </p>
+        <ContentReveal revealKey={`${quiz?.id ?? document.id}-taking`}>
+          <div className="space-y-6 rounded-lg bg-muted/40 p-6">
+            {showQuizProgress ? (
+              <QuizProgressRuler
+                total={questions.length}
+                completed={quizCompletedCount}
+              />
+            ) : null}
+            <p className="section-lead">
+              Question {currentIndex + 1} of {questions.length}
+            </p>
           <p className="font-medium">{currentQuestion.question}</p>
 
           <RadioGroup
@@ -230,10 +255,18 @@ export function DocumentQuizSection({
             {currentIndex >= questions.length - 1 ? "See results" : "Next"}
           </Button>
         </div>
+        </ContentReveal>
       ) : null}
 
       {phase === "results" && questions.length > 0 ? (
+        <ContentReveal revealKey={`${quiz?.id ?? document.id}-results-${score}`}>
         <div className="space-y-6 rounded-lg bg-muted/40 p-6">
+          {showQuizProgress ? (
+            <QuizProgressRuler
+              total={questions.length}
+              completed={questions.length}
+            />
+          ) : null}
           <div className="space-y-1">
             <h3 className="font-medium">Results</h3>
             <p className="section-lead font-mono">
@@ -276,11 +309,20 @@ export function DocumentQuizSection({
             </Button>
           </div>
         </div>
+        </ContentReveal>
       ) : null}
 
       {phase === "idle" && quiz && questions.length > 0 ? (
         <p className="section-lead">
-          A {questions.length}-question quiz is ready. Click Start quiz to begin.
+          <span className="display-emphasis">{questions.length} questions</span>{" "}
+          are loaded — hit Start quiz when you want a scored run.
+        </p>
+      ) : null}
+
+      {phase === "idle" && !quiz && canGenerate ? (
+        <p className="section-lead">
+          No quiz yet. Generate multiple-choice questions from this reading when
+          you are ready to test yourself.
         </p>
       ) : null}
     </section>

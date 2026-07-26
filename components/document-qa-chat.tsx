@@ -6,7 +6,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { formatGeminiError } from "@/lib/gemini-errors";
+import { formatGroqError } from "@/lib/groq-errors";
 import type { Document, QaExchange } from "@/types";
 
 type DocumentQaChatProps = {
@@ -50,7 +50,7 @@ export function DocumentQaChat({ document, initialHistory }: DocumentQaChatProps
         | null;
 
       if (!response.ok || !body || !("answer" in body) || !body.answer) {
-        const message = formatGeminiError(
+        const message = formatGroqError(
           (body && "error" in body && body.error) ||
             "Failed to get an answer. Please try again.",
         );
@@ -83,8 +83,9 @@ export function DocumentQaChat({ document, initialHistory }: DocumentQaChatProps
       <div className="flex h-96 flex-col rounded-lg bg-muted/40 sm:h-[26rem]">
         <div className="flex-1 space-y-4 overflow-y-auto p-4">
           {history.length === 0 ? (
-            <p className="section-lead">
-              No questions yet. Ask something about the document to start.
+            <p className="section-lead max-w-sm">
+              <span className="display-emphasis">Nothing asked yet.</span> Type a
+              question about the reading — answers stay grounded in this PDF only.
             </p>
           ) : (
             history.map((exchange) => (

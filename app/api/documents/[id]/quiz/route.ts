@@ -1,8 +1,8 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { askGemini } from "@/lib/gemini";
-import { geminiErrorStatus } from "@/lib/gemini-errors";
+import { askGroq } from "@/lib/groq";
+import { groqErrorStatus } from "@/lib/groq-errors";
 import { parseQuizQuestions } from "@/lib/parse-quiz-json";
 import { buildQuizSystemPrompt } from "@/lib/quiz-prompts";
 import type { QuizQuestion } from "@/types";
@@ -45,7 +45,7 @@ export async function POST(_request: Request, context: RouteContext) {
   }
 
   try {
-    const rawQuiz = await askGemini(
+    const rawQuiz = await askGroq(
       buildQuizSystemPrompt(extractedText),
       "Generate the quiz JSON array now."
     );
@@ -87,7 +87,6 @@ export async function POST(_request: Request, context: RouteContext) {
         .from("quizzes")
         .insert({
           document_id: documentId,
-          user_id: user.id,
           questions,
         })
         .select("id, questions")
@@ -110,7 +109,7 @@ export async function POST(_request: Request, context: RouteContext) {
 
     return NextResponse.json(
       { error: message },
-      { status: geminiErrorStatus(message) },
+      { status: groqErrorStatus(message) },
     );
   }
 }

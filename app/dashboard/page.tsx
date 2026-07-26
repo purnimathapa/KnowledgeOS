@@ -1,4 +1,5 @@
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { DashboardWorkspace } from "@/components/dashboard-workspace";
@@ -28,7 +29,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   }
 
   if (!userId) {
-    return null;
+    redirect("/login");
   }
 
   return (

@@ -30,7 +30,7 @@ export function DashboardSubjects({ subjects }: DashboardSubjectsProps) {
         <EmptyState
           icon={BookOpen}
           title="No subjects yet"
-          description="Create a subject to organize PDFs, summaries, quizzes, and flashcards."
+          description="Create a folder for each course — PDFs, summaries, and practice tools stay grouped by topic."
           action={<AddSubjectDialog />}
         />
       ) : (

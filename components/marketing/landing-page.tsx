@@ -71,8 +71,8 @@ export function LandingPage() {
       <SiteHeader />
 
       <main className="relative mx-auto max-w-6xl px-4 sm:px-8">
-        <section className="flex flex-col items-center pb-20 pt-16 text-center sm:pt-24">
-          <p className="feature-pill mb-6">
+        <section className="flex flex-col items-center pb-20 pt-16 text-center sm:pt-28">
+          <p className="feature-pill mb-8 hero-glow">
             <span className="font-mono text-[10px] uppercase tracking-widest">
               Intelligent study workspace
             </span>
@@ -94,7 +94,7 @@ export function LandingPage() {
             </Button>
           </div>
           <p className="mt-4 text-xs text-muted-foreground">
-            No credit card · Free tier Gemini limits apply
+            No credit card · Groq free-tier rate limits apply
           </p>
         </section>
 
@@ -131,11 +131,14 @@ export function LandingPage() {
             </p>
           </div>
           <div className="mt-12 grid gap-4 sm:grid-cols-2">
-            {FEATURES.map((feature) => (
+            {FEATURES.map((feature, index) => (
               <article
                 key={feature.title}
-                className="glass-panel flex gap-4 p-6 text-left motion-safe:transition-transform motion-safe:hover:-translate-y-0.5"
+                className="glass-panel group relative flex gap-4 overflow-hidden p-6 text-left motion-safe:transition-transform motion-safe:duration-300 motion-safe:hover:-translate-y-1"
               >
+                <span className="font-mono text-[10px] text-muted-foreground">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[var(--radius)] bg-muted/80">
                   <feature.icon className="h-4 w-4 text-foreground" aria-hidden />
                 </div>

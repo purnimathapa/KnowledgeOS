@@ -1,8 +1,8 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-import { askGemini } from "@/lib/gemini";
-import { geminiErrorStatus } from "@/lib/gemini-errors";
+import { askGroq } from "@/lib/groq";
+import { groqErrorStatus } from "@/lib/groq-errors";
 import { buildDocumentQaSystemPrompt } from "@/lib/qa-prompts";
 import { createClient } from "@/utils/supabase/server";
 
@@ -59,7 +59,7 @@ export async function POST(request: Request, context: RouteContext) {
   }
 
   try {
-    const answer = await askGemini(
+    const answer = await askGroq(
       buildDocumentQaSystemPrompt(extractedText),
       question
     );
@@ -68,7 +68,6 @@ export async function POST(request: Request, context: RouteContext) {
       .from("qa_history")
       .insert({
         document_id: documentId,
-        user_id: user.id,
         question,
         answer,
       })
@@ -86,7 +85,7 @@ export async function POST(request: Request, context: RouteContext) {
 
     return NextResponse.json(
       { error: message },
-      { status: geminiErrorStatus(message) },
+      { status: groqErrorStatus(message) },
     );
   }
 }

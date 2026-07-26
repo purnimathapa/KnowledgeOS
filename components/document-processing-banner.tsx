@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 
+import { StrokeCheckmark } from "@/components/motion/stroke-checkmark";
 import { Button } from "@/components/ui/button";
+import { useStatusReadyTransition } from "@/lib/use-status-ready-transition";
 import type { DocumentStatus } from "@/types";
 
 type DocumentProcessingBannerProps = {
@@ -22,6 +24,7 @@ export function DocumentProcessingBanner({
   const router = useRouter();
   const [retrying, setRetrying] = useState(false);
   const normalized = status.toLowerCase();
+  const justReady = useStatusReadyTransition(status);
 
   useEffect(() => {
     if (!POLL_STATUSES.has(normalized)) return;
@@ -61,6 +64,26 @@ export function DocumentProcessingBanner({
     }
   }
 
+  if (justReady && normalized === "ready") {
+    return (
+      <div
+        className="flex items-start gap-3 rounded-lg border border-border bg-muted/40 px-4 py-4 text-sm"
+        role="status"
+      >
+        <StrokeCheckmark className="mt-0.5 h-5 w-5 shrink-0" />
+        <div className="space-y-1">
+          <p className="font-medium text-foreground">
+            <span className="display-emphasis">Ready to study</span> — text
+            extraction finished.
+          </p>
+          <p className="section-lead">
+            Generate a summary, quiz, or flashcards whenever you like.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   if (POLL_STATUSES.has(normalized)) {
     return (
       <div
@@ -69,7 +92,9 @@ export function DocumentProcessingBanner({
       >
         <Loader2 className="mt-0.5 h-4 w-4 shrink-0 animate-spin text-warning" />
         <div className="space-y-1">
-          <p className="font-medium text-foreground">Extracting text from your PDF…</p>
+          <p className="font-medium text-foreground">
+            Extracting text from your PDF…
+          </p>
           <p className="section-lead">
             Summary, quiz, flashcards, and Q&amp;A unlock when extraction
             finishes. This page refreshes automatically.

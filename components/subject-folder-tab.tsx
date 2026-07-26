@@ -92,8 +92,8 @@ export function SubjectFolderTab({
           className={cn(
             "folder-tab-shape relative flex min-h-[5rem] flex-1 flex-col justify-between border px-3 py-3 text-left transition-[transform,background-color,box-shadow] duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none",
             active
-              ? "border-border bg-card shadow-sm"
-              : "border-transparent bg-muted/80 hover:bg-muted"
+              ? "border-border paper-surface shadow-md"
+              : "border-transparent bg-muted/60 hover:bg-muted/90"
           )}
           style={{
             transform: `perspective(900px) rotateX(${tilt.x}deg) rotateY(${tilt.y}deg) translateY(${floating ? -3 : 0}px)`,

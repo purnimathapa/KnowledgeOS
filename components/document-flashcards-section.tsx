@@ -5,10 +5,12 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { Flashcard3D } from "@/components/flashcard-3d";
+import { ContentReveal } from "@/components/motion/content-reveal";
 import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { formatGeminiError } from "@/lib/gemini-errors";
+import { formatGroqError } from "@/lib/groq-errors";
+import { useAutostartFromQuery } from "@/lib/use-autostart-from-query";
 import type { Document, Flashcard, FlashcardPair } from "@/types";
 
 type DocumentFlashcardsSectionProps = {
@@ -73,9 +75,9 @@ export function DocumentFlashcardsSection({
       } | null;
 
       if (!response.ok || !body?.cards?.length) {
-        setError(formatGeminiError(body?.error ?? "Failed to generate flashcards."));
+        setError(formatGroqError(body?.error ?? "Failed to generate flashcards."));
         toast.error("Flashcard generation failed", {
-          description: formatGeminiError(
+          description: formatGroqError(
             body?.error ?? "Failed to generate flashcards.",
           ),
         });
@@ -108,6 +110,11 @@ export function DocumentFlashcardsSection({
     setIndex(0);
     setDeckKey((key) => key + 1);
   }
+
+  useAutostartFromQuery("flashcards", canGenerate, () => {
+    if (cards.length > 0) return;
+    void handleGenerate();
+  });
 
   return (
     <section className="space-y-4">
@@ -159,6 +166,7 @@ export function DocumentFlashcardsSection({
       ) : null}
 
       {!generating && total > 0 && currentCard ? (
+        <ContentReveal revealKey={`deck-${cards[0]?.id ?? total}`}>
         <div className="space-y-4">
           <Flashcard3D key={`${deckKey}-${index}`} card={currentCard} />
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -177,12 +185,13 @@ export function DocumentFlashcardsSection({
             </div>
           </div>
         </div>
+        </ContentReveal>
       ) : null}
 
       {!generating && total === 0 ? (
         <EmptyState
-          title="No flashcards yet"
-          description="Generate a deck of 10–15 term/definition cards from this document."
+          title="No deck yet"
+          description="When the PDF is ready, generate 10–15 term cards and flip through them like a real stack."
         />
       ) : null}
     </section>

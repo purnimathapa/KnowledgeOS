@@ -5,8 +5,9 @@ import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import { toast } from "sonner";
 
+import { ContentReveal } from "@/components/motion/content-reveal";
 import { EmptyState } from "@/components/empty-state";
-import { formatGeminiError } from "@/lib/gemini-errors";
+import { formatGroqError } from "@/lib/groq-errors";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Document, Summary } from "@/types";
@@ -44,7 +45,7 @@ export function DocumentSummarySection({
       } | null;
 
       if (!response.ok || !body?.content) {
-        const message = formatGeminiError(
+        const message = formatGroqError(
           body?.error ?? "Failed to generate summary.",
         );
         setError(message);
@@ -55,7 +56,6 @@ export function DocumentSummarySection({
       setSummary({
         id: body.id ?? summary?.id ?? document.id,
         document_id: document.id,
-        user_id: document.user_id,
         content: body.content,
         created_at: summary?.created_at ?? new Date().toISOString(),
       });
@@ -121,16 +121,18 @@ export function DocumentSummarySection({
       ) : null}
 
       {!loading && summary?.content ? (
-        <article className="rounded-lg bg-muted/40 p-6 leading-relaxed text-foreground [&_h1]:mb-2 [&_h1]:font-semibold [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:font-medium [&_h3]:mb-1 [&_h3]:mt-3 [&_h3]:font-medium [&_li]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-5">
-          <ReactMarkdown>{summary.content}</ReactMarkdown>
-        </article>
+        <ContentReveal revealKey={summary.id}>
+          <article className="rounded-lg bg-muted/40 p-6 leading-relaxed text-foreground [&_h1]:mb-2 [&_h1]:font-semibold [&_h2]:mb-2 [&_h2]:mt-4 [&_h2]:font-medium [&_h3]:mb-1 [&_h3]:mt-3 [&_h3]:font-medium [&_li]:my-1 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:my-2 [&_ul]:list-disc [&_ul]:pl-5">
+            <ReactMarkdown>{summary.content}</ReactMarkdown>
+          </article>
+        </ContentReveal>
       ) : null}
 
       {!loading && !summary?.content && canSummarize ? (
         <EmptyState
           icon={FileText}
           title="No summary yet"
-          description="Generate a structured study summary from this document's extracted text."
+          description="The PDF is ready — generate a tight study sheet from the full text whenever you want a read-through before the exam."
           action={
             <Button type="button" size="sm" onClick={handleGenerateSummary}>
               Generate summary

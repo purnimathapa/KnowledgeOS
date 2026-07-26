@@ -1,12 +1,12 @@
 # KnowledgeOS
 
-Study workspace built with Next.js: organize subjects, upload PDFs, and generate summaries, quizzes, flashcards, and Q&A with Gemini.
+Study workspace built with Next.js: organize subjects, upload PDFs, and generate summaries, quizzes, flashcards, and Q&A with Groq.
 
 ## Prerequisites
 
 - Node.js 18+
 - A [Supabase](https://supabase.com) project (Auth, Postgres, Storage)
-- A [Google AI Studio](https://aistudio.google.com/apikey) API key (`AIza…`)
+- A [Groq](https://console.groq.com) API key (`gsk_…`)
 
 ## Quick start
 
@@ -27,9 +27,9 @@ Copy `.env.example` to `.env.local`. Never commit `.env.local`.
 |----------|----------|-------------|
 | `NEXT_PUBLIC_SUPABASE_URL` | Yes | Project URL (Settings → API) |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Yes | Publishable / anon key (Settings → API) |
-| `GEMINI_API_KEY` | Yes | Google AI Studio key |
+| `GROQ_API_KEY` | Yes | Groq API key from [console.groq.com](https://console.groq.com/keys) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Dev signup | Service role key; used by `/api/auth/register` to confirm users without email rate limits. **Server only.** |
-| `GEMINI_MODEL` | No | Default `gemini-2.0-flash`. Try `gemini-2.0-flash-lite` if you hit free-tier 429s. |
+| `GROQ_MODEL` | No | Default `llama-3.3-70b-versatile`. Use `llama-3.1-8b-instant` for faster, lighter requests. |
 
 ## Supabase setup
 
@@ -41,7 +41,7 @@ Copy `.env.example` to `.env.local`. Never commit `.env.local`.
 
    - `subjects` — `user_id`, `name`, `color`
    - `documents` — `subject_id`, `user_id`, `file_name`, **`storage_path`**, `status`, `extracted_text`
-   - `summaries`, `qa_history`, `quizzes`, `flashcards` — tied to `document_id` and `user_id`
+   - `summaries`, `qa_history`, `quizzes`, `flashcards` — keyed by `document_id` (ownership via `documents.user_id` + RLS)
 
    Enable RLS on all tables so rows are scoped to `auth.uid()`.
 
@@ -60,7 +60,7 @@ Copy `.env.example` to `.env.local`. Never commit `.env.local`.
 
 - **Signup / login loops** — Check Supabase URL and publishable key; ensure middleware cookies work (same site, HTTPS in production).
 - **Upload errors** — Confirm the `documents` bucket exists and inserts use `storage_path`, not `file_path`.
-- **Gemini 429** — Wait, use a lighter `GEMINI_MODEL`, or enable billing in Google AI Studio.
+- **Groq errors** — Verify `GROQ_API_KEY`, model name (`GROQ_MODEL`), and limits at console.groq.com.
 - **Server error / missing chunk (`./276.js`)** — Clear the build cache: `rm -rf .next && npm run dev`.
 
 ## License

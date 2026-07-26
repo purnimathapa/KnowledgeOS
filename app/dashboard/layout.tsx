@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { Suspense } from "react";
 
 import { DashboardBreadcrumbs } from "@/components/dashboard-breadcrumbs";
-import { DashboardTopNav } from "@/components/dashboard-top-nav";
+import { DashboardNavBar } from "@/components/dashboard-nav-bar";
 import { createClient } from "@/utils/supabase/server";
 
 export default async function DashboardLayout({
@@ -31,8 +31,8 @@ export default async function DashboardLayout({
         className="marketing-grid pointer-events-none fixed inset-0 opacity-25"
         aria-hidden
       />
-      <DashboardTopNav email={email} />
-      <div className="relative mx-auto w-full max-w-7xl flex-1 px-4 pb-12 pt-6 sm:px-8">
+      <DashboardNavBar email={email} />
+      <div className="relative mx-auto w-full max-w-7xl flex-1 px-4 pb-16 pt-8 sm:px-8">
         <Suspense fallback={null}>
           <DashboardBreadcrumbs />
         </Suspense>
