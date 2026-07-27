@@ -62,12 +62,18 @@ export type FlashcardPair = {
   back: string;
 };
 
+export type Flashcards = {
+  id: string;
+  document_id: string;
+  cards: FlashcardPair[];
+  created_at: string;
+};
+
 export type Flashcard = FlashcardPair & {
   id: string;
   document_id: string;
   created_at: string;
   user_id?: string;
-  sort_order?: number;
 };
 
 export const DOCUMENTS_BUCKET = "documents";

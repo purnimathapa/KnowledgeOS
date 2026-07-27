@@ -1,11 +1,12 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { flashcardsFromRow } from "@/lib/flashcard-models";
 import { buildFlashcardsSystemPrompt } from "@/lib/flashcard-prompts";
 import { askGroq } from "@/lib/groq";
 import { groqErrorStatus } from "@/lib/groq-errors";
 import { parseFlashcardPairs } from "@/lib/parse-flashcards-json";
-import type { Flashcard, FlashcardPair } from "@/types";
+import type { FlashcardPair } from "@/types";
 import { createClient } from "@/utils/supabase/server";
 
 type RouteContext = {
@@ -61,37 +62,51 @@ export async function POST(_request: Request, context: RouteContext) {
       throw new Error(message);
     }
 
-    const { error: deleteError } = await supabase
+    const { data: existing } = await supabase
       .from("flashcards")
-      .delete()
-      .eq("document_id", documentId);
+      .select("id")
+      .eq("document_id", documentId)
+      .maybeSingle();
 
-    if (deleteError) {
-      throw new Error(deleteError.message);
+    let savedRow: {
+      id: string;
+      document_id: string;
+      cards: FlashcardPair[];
+      created_at: string;
+    };
+
+    if (existing) {
+      const { data: updated, error: updateError } = await supabase
+        .from("flashcards")
+        .update({ cards: pairs })
+        .eq("id", existing.id)
+        .select("id, document_id, cards, created_at")
+        .single();
+
+      if (updateError || !updated) {
+        throw new Error(updateError?.message ?? "Failed to update flashcards.");
+      }
+
+      savedRow = updated as typeof savedRow;
+    } else {
+      const { data: inserted, error: insertError } = await supabase
+        .from("flashcards")
+        .insert({
+          document_id: documentId,
+          cards: pairs,
+        })
+        .select("id, document_id, cards, created_at")
+        .single();
+
+      if (insertError || !inserted) {
+        throw new Error(insertError?.message ?? "Failed to save flashcards.");
+      }
+
+      savedRow = inserted as typeof savedRow;
     }
-
-    const rows = pairs.map((pair) => ({
-      document_id: documentId,
-      front: pair.front,
-      back: pair.back,
-    }));
-
-    const { data: inserted, error: insertError } = await supabase
-      .from("flashcards")
-      .insert(rows)
-      .select("*");
-
-    if (insertError || !inserted) {
-      throw new Error(insertError?.message ?? "Failed to save flashcards.");
-    }
-
-    const cards = [...inserted].sort(
-      (a, b) =>
-        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-    );
 
     return NextResponse.json({
-      cards: cards as Flashcard[],
+      cards: flashcardsFromRow(savedRow),
     });
   } catch (error) {
     const message =

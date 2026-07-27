@@ -9,6 +9,7 @@ import { DocumentQuizSection } from "@/components/document-quiz-section";
 import { DocumentStatusBadge } from "@/components/document-status-badge";
 import { DocumentSummarySection } from "@/components/document-summary-section";
 import { StudyLoopSteps } from "@/components/study-loop-steps";
+import { flashcardsFromRow } from "@/lib/flashcard-models";
 import type {
   Document,
   Flashcard,
@@ -82,15 +83,19 @@ export default async function DocumentPage({ params }: DocumentPageProps) {
     console.error("Failed to load quiz:", quizError.message);
   }
 
-  const { data: flashcards, error: flashcardsError } = await supabase
+  const { data: flashcardsRow, error: flashcardsError } = await supabase
     .from("flashcards")
-    .select("*")
+    .select("id, document_id, cards, created_at")
     .eq("document_id", id)
-    .order("created_at", { ascending: true });
+    .maybeSingle();
 
   if (flashcardsError) {
     console.error("Failed to load flashcards:", flashcardsError.message);
   }
+
+  const initialFlashcards: Flashcard[] = flashcardsRow
+    ? flashcardsFromRow(flashcardsRow)
+    : [];
 
   const isReady =
     documentRow.status === "ready" &&
@@ -144,7 +149,7 @@ export default async function DocumentPage({ params }: DocumentPageProps) {
           <Suspense fallback={null}>
             <DocumentFlashcardsSection
               document={documentRow}
-              initialCards={(flashcards ?? []) as Flashcard[]}
+              initialCards={initialFlashcards}
             />
           </Suspense>
         </div>
